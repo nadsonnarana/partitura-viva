@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f1">
+  <meta name="description" content="Treine leitura de partitura, ritmo e expressão musical com exercícios curtos e interativos.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Partitura Viva">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Partitura Viva — leitura musical para praticar</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+  <script src="scores.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#inicio" aria-label="Partitura Viva, início">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M24 6v22.5a6.5 6.5 0 1 1-3-5.5V12l13-3v18.5a6.5 6.5 0 1 1-3-5.5V6.8L24 9z"/></svg></span>
+        <span><b>partitura viva</b><small>treino musical</small></span>
+      </a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <button class="nav-link active" data-view="inicio">Início</button>
+        <button class="nav-link" data-view="aprender">Aprender</button>
+        <button class="nav-link" data-view="partituras">Partituras</button>
+        <button class="nav-link" data-view="progresso">Meu progresso</button>
+      </nav>
+      <button class="icon-button" id="soundToggle" aria-label="Ligar ou desligar sons" title="Som desligado">♫</button>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section id="view-inicio" class="view active" aria-labelledby="welcomeTitle">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-dot"></span> um pouquinho por dia</p>
+            <h1 id="welcomeTitle">Leia a música<br><em>nota por nota.</em></h1>
+            <p class="hero-text">Aprenda a reconhecer notas, ritmos e sinais musicais com desafios rápidos. Escolha um tema e comece no seu ritmo.</p>
+            <button class="button primary" data-go="aprender">Começar pela explicação <span aria-hidden="true">→</span></button>
+            <div class="hero-foot"><span class="avatar-stack"><i>♪</i><i>♫</i><i>𝄞</i></span><span>Aprenda primeiro. Jogue depois.</span></div>
+          </div>
+          <div class="hero-art" aria-label="Ilustração de notas sobre um pentagrama">
+            <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+            <div class="art-label label-top">SOL · FÁ · RITMO</div>
+            <svg class="hero-staff" viewBox="0 0 500 300" role="img" aria-label="Notas musicais subindo em um pentagrama">
+              <g class="staff-lines"><path d="M34 88H468M34 112H468M34 136H468M34 160H468M34 184H468"/></g>
+              <g class="staff-notes"><ellipse cx="116" cy="172" rx="13" ry="8" transform="rotate(-18 116 172)"/><path d="M128 169V92"/><ellipse cx="206" cy="148" rx="13" ry="8" transform="rotate(-18 206 148)"/><path d="M218 145V69"/><ellipse cx="296" cy="124" rx="13" ry="8" transform="rotate(-18 296 124)"/><path d="M308 121V45"/><ellipse cx="386" cy="100" rx="13" ry="8" transform="rotate(-18 386 100)"/><path d="M398 97V30"/><path d="M398 31q31 8 20 27M398 45q31 8 20 27"/></g>
+              <g class="floating-notes"><circle cx="72" cy="53" r="4"/><circle cx="444" cy="219" r="4"/><path d="M55 220q8-8 16 0M438 56q8-8 16 0"/></g>
+            </svg>
+            <div class="art-label label-bottom">OUÇA. LEIA. DESCUBRA.</div>
+            <div class="art-note note-a">♪</div><div class="art-note note-b">♫</div>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div><p class="eyebrow">PRIMEIRO, APRENDA</p><h2>Conheça os assuntos do guia</h2></div>
+          <button class="text-button" data-go="aprender">Abrir explicações <span>→</span></button>
+        </div>
+        <div class="topic-grid">
+          <button class="topic-card card-lilac" data-go="aprender"><span class="topic-icon clef-icon">𝄞</span><span class="topic-meta">LEITURA DE NOTAS</span><b>Clave de sol</b><span class="topic-bottom">Veja onde ficam as notas <i>↗</i></span></button>
+          <button class="topic-card card-peach" data-go="aprender"><span class="topic-icon clef-icon">𝄢</span><span class="topic-meta">LEITURA DE NOTAS</span><b>Clave de fá</b><span class="topic-bottom">Veja onde ficam as notas <i>↗</i></span></button>
+          <button class="topic-card card-mint" data-go="aprender"><span class="topic-icon rhythm-icon">♩</span><span class="topic-meta">DURAÇÃO E PULSO</span><b>Figuras rítmicas</b><span class="topic-bottom">Semibreve, colcheia e mais <i>↗</i></span></button>
+          <button class="topic-card card-yellow" data-go="aprender"><span class="topic-icon meter-icon">4<br><small>4</small></span><span class="topic-meta">ORGANIZAÇÃO DO TEMPO</span><b>Compassos</b><span class="topic-bottom">Pulsos e agrupamentos <i>↗</i></span></button>
+          <button class="topic-card card-lilac" data-go="aprender"><span class="topic-icon expression-icon">ƒ</span><span class="topic-meta">COMO TOCAR</span><b>Articulação e dinâmica</b><span class="topic-bottom">Dê intenção a cada nota <i>↗</i></span></button>
+          <button class="topic-card card-peach" data-go="aprender"><span class="topic-icon rhythm-icon">●</span><span class="topic-meta">FORMA E POSIÇÃO</span><b>Cabeças de nota</b><span class="topic-bottom">Altura e duração <i>↗</i></span></button>
+        </div>
+
+        <section class="progress-strip" aria-label="Resumo do progresso">
+          <div class="progress-stamp">✦</div><div class="progress-message"><b>Seu progresso está aqui</b><span>Continue praticando: cada resposta conta.</span></div>
+          <div class="progress-stat"><b id="homePoints">0</b><span>pontos</span></div><div class="progress-stat"><b id="homeStreak">0</b><span>sequência certa</span></div>
+          <button class="button light-button" data-go="progresso">Ver progresso</button>
+        </section>
+      </section>
+
+      <section id="view-treinar" class="view" aria-labelledby="practiceTitle">
+        <div class="page-intro"><p class="eyebrow">PRÁTICA INTERATIVA</p><h1 id="practiceTitle">Vamos treinar?</h1><p>Escolha um assunto. Cada rodada traz uma pergunta nova e uma explicação para ajudar você a aprender.</p></div>
+        <div class="practice-layout">
+          <aside class="practice-sidebar" aria-label="Temas de prática">
+            <p class="side-title">TEMA DE HOJE</p>
+            <button class="mode-button selected" data-mode="misturado"><span>✳</span> Misturado <small>um pouco de tudo</small></button>
+            <button class="mode-button" data-mode="claveSol"><span>𝄞</span> Clave de sol <small>notas na pauta</small></button>
+            <button class="mode-button" data-mode="claveFa"><span>𝄢</span> Clave de fá <small>notas na pauta</small></button>
+            <button class="mode-button" data-mode="ritmos"><span>♩</span> Figuras rítmicas <small>valores e pausas</small></button>
+            <button class="mode-button" data-mode="compassos"><span>4/4</span> Compassos <small>pulsos e agrupamentos</small></button>
+            <button class="mode-button" data-mode="expressao"><span>ƒ</span> Expressão <small>articulação e dinâmica</small></button>
+            <button class="mode-button" data-mode="cabecas"><span>●</span> Cabeças de nota <small>posição e forma</small></button>
+            <div class="sidebar-tip"><span>☼</span><p><b>Uma dica</b><br>Leia as notas de baixo para cima e vá nomeando cada linha e espaço.</p></div>
+          </aside>
+          <div class="exercise-panel" id="exercisePanel">
+            <div class="exercise-topline"><span class="round-label" id="roundLabel">RODADA 1</span><span class="score-label">✦ <b id="roundPoints">0</b> pontos</span></div>
+            <div class="question-progress"><span id="questionProgress"></span></div>
+            <div id="questionArea" aria-live="polite"></div>
+            <div id="answerArea" class="answer-area"></div>
+            <div id="feedback" class="feedback" aria-live="polite" hidden></div>
+            <div class="exercise-actions"><button class="text-button" id="skipQuestion">Pular pergunta</button><button class="button primary" id="nextQuestion" disabled>Conferir resposta <span>→</span></button></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-aprender" class="view" aria-labelledby="learnTitle">
+        <div class="page-intro"><p class="eyebrow">GUIA RÁPIDO</p><h1 id="learnTitle">Aprender também é praticar.</h1><p>Consulte os conceitos e depois faça uma rodada para fixar.</p></div>
+        <div id="lessonGrid"></div>
+      </section>
+
+      <section id="view-partituras" class="view" aria-labelledby="scoresTitle">
+        <div class="page-intro"><p class="eyebrow">LEITURA COMPLETA</p><h1 id="scoresTitle">Partituras para tocar e ouvir.</h1><p>Escolha uma melodia, leia a pauta na clave de sol ou de fá e confira o som quando quiser.</p></div>
+        <div id="scoreStudio" class="score-studio"></div>
+      </section>
+
+      <section id="view-progresso" class="view" aria-labelledby="progressTitle">
+        <div class="page-intro"><p class="eyebrow">SEU CAMINHO MUSICAL</p><h1 id="progressTitle">Cada nota te leva adiante.</h1><p>Seu progresso fica salvo neste navegador, sem conta ou cadastro.</p></div>
+        <div class="stats-grid"><article class="stat-card stat-purple"><span>✦</span><b id="totalPoints">0</b><small>pontos conquistados</small></article><article class="stat-card stat-orange"><span>✓</span><b id="totalCorrect">0</b><small>respostas certas</small></article><article class="stat-card stat-green"><span>♫</span><b id="bestStreak">0</b><small>maior sequência certa</small></article></div>
+        <div class="card-panel topic-progress"><div class="section-heading"><div><p class="eyebrow">POR ASSUNTO</p><h2>Seu mapa de prática</h2></div></div><div id="topicProgressList"></div></div>
+        <div class="progress-note"><span>🔒</span><span>Os dados ficam apenas neste aparelho e navegador. Apagar o histórico do navegador também apaga este progresso.</span><button id="resetProgress" class="text-button">Zerar meu progresso</button></div>
+      </section>
+    </main>
+    <footer class="site-footer"><span>partitura viva <i>·</i> aprenda no seu tempo</span><span>Seu progresso fica salvo só neste aparelho.</span></footer>
+  </div>
+</body>
+</html>
