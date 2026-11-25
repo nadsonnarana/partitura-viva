@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Música em Jogo</title>
+  <rect width="512" height="512" rx="112" fill="#554b83"/>
+  <g fill="none" stroke="#fff" stroke-width="13" opacity=".5">
+    <path d="M76 250h360M76 280h360M76 310h360M76 340h360M76 370h360"/>
+  </g>
+  <path d="M282 88c-54 51-73 106-45 151 22 36 77 37 90 73 14 39-14 84-52 84-25 0-40-18-37-39 3-18 23-29 39-19 10 6 14 17 12 28 27-20 34-58 10-83-23-24-64-29-82-64-25-48 11-115 71-173-8 21-10 38-6 53 5 20 21 31 40 31 30 0 49-24 44-52-4-22-26-39-52-38 20-26 53-39 85-35-38-28-95-21-117 20z" fill="#fff"/>
+  <circle cx="330" cy="354" r="27" fill="#fff"/>
+  <path d="M355 354v-128l94-22v130" fill="none" stroke="#fff" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="424" cy="350" r="27" fill="#fff"/>
+</svg>

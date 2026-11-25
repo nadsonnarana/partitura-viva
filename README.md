@@ -1,4 +1,4 @@
-# Partitura Viva
+# Música em Jogo
 
 Aplicativo gratuito de prática de leitura musical. É um site estático: não exige conta, servidor, banco de dados ou instalação pelos alunos. O progresso fica no armazenamento local do navegador de cada aparelho.
 
@@ -15,7 +15,7 @@ Aplicativo gratuito de prática de leitura musical. É um site estático: não e
 
 Na página **Aprender**, primeiro vêm todas as explicações. Só depois aparecem os jogos. As práticas de clave de sol e clave de fá são separadas.
 
-Na aba **Partituras**, selecione uma melodia e alterne a clave. O botão **Ouvir partitura** reproduz a melodia pelo áudio do navegador; **Parar** interrompe a reprodução. A caixa **Mostrar nomes das notas** liga ou desliga as etiquetas. As versões são arranjos didáticos em Dó maior; na clave de fá, a reprodução soa uma oitava abaixo. O áudio funciona sem arquivos externos, depois de uma ação do aluno na página.
+Na aba **Partituras**, selecione uma melodia e alterne a clave. O botão **Ouvir partitura** reproduz a melodia pelo áudio do navegador; **Parar** interrompe a reprodução. A caixa **Mostrar nomes das notas** liga ou desliga as etiquetas. As versões são arranjos didáticos em Dó maior; as duas claves mostram e reproduzem as mesmas alturas: mudar a clave muda a leitura, não a nota que soa. O áudio funciona sem arquivos externos, depois de uma ação do aluno na página.
 
 ## Testar no computador
 
@@ -24,12 +24,12 @@ Abra `index.html` no navegador. Para compartilhar com a turma, publique a pasta 
 ## Publicar gratuitamente no GitHub Pages
 
 1. Crie ou entre em uma conta GitHub.
-2. Crie um repositório público, por exemplo `partitura-viva`.
+2. Crie um repositório público, por exemplo `musica-em-jogo`.
 3. Envie para a raiz do repositório os arquivos `index.html`, `styles.css`, `app.js`, `scores.js` e `README.md`.
 4. Abra **Settings → Pages**.
 5. Em **Build and deployment**, escolha **Deploy from a branch**.
 6. Selecione `main` e a pasta `/(root)`, então clique em **Save**.
-7. Quando o GitHub Pages terminar a publicação, copie o endereço mostrado em Pages. O formato será `https://SEU-USUARIO.github.io/partitura-viva/`.
+7. Quando o GitHub Pages terminar a publicação, copie o endereço mostrado em Pages. O formato será `https://SEU-USUARIO.github.io/musica-em-jogo/`.
 8. Envie esse endereço aos alunos. Em celulares, eles podem usar o menu do navegador e escolher “Adicionar à tela inicial”.
 
 O GitHub Pages gratuito publica sites estáticos em repositórios públicos. O site e o código ficam públicos; não coloque nomes de estudantes, notas, e-mails ou outros dados pessoais no repositório.
@@ -42,7 +42,7 @@ O projeto já inclui manifesto, ícone e service worker. Depois de publicar em H
 
 1. Abra o endereço publicado no **Chrome**.
 2. Toque no menu ⋮ e escolha **Instalar app** ou **Adicionar à tela inicial**.
-3. Confirme. O ícone **Partitura Viva** aparecerá junto dos outros aplicativos.
+3. Confirme. O ícone **Música em Jogo** aparecerá junto dos outros aplicativos.
 
 ### iPhone ou iPad
 
@@ -62,3 +62,5 @@ Para oferecer uma versão na Google Play ou App Store, é preciso empacotar o si
 - Open Music Theory, notas, claves e linhas suplementares: <https://pressbooks.nebraska.edu/openmusictheory/chapter/notation-of-notes-clefs-and-ledger-lines/>
 - Open Music Theory, valores rítmicos: <https://open-musictheory.github.io/docs/fundamentals/rhythmic-values/>
 - Open Music Theory, métrica e fórmulas de compasso: <https://open-musictheory.github.io/meter.html>
+- Carnegie Hall, material didático e partitura de *Ode to Joy*: <https://www.carnegiehall.org/uploadedFiles/Resources_and_Components/PDF/WMI/1516_LU_OrchestraSings_TG.pdf>
+- Scottish Youth Music Initiative, partitura de *Ode to Joy*: <https://blogs.glowscotland.org.uk/sb/public/youthmusicinitiative/uploads/sites/3670/2020/09/08110938/Ode-to-Joy-Melody-Sheet.pdf>

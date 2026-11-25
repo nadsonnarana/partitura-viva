@@ -12,6 +12,7 @@ const figures = [
   { name: 'Semicolcheia', value: 0.25, open: false, stem: true, flags: 2 },
   { name: 'Fusa', value: 0.125, open: false, stem: true, flags: 3 }
 ];
+const beatLabel = value => ({ 4: '4 tempos', 2: '2 tempos', 1: '1 tempo', 0.5: '½ tempo', 0.25: '¼ tempo', 0.125: '⅛ tempo' })[value] || `${value} tempos`;
 const meters = [
   { symbol: '2/4', top: 2, bottom: 4, pulse: 'semínima', grouping: '2 tempos de semínima' },
   { symbol: '3/4', top: 3, bottom: 4, pulse: 'semínima', grouping: '3 tempos de semínima' },
@@ -51,7 +52,14 @@ function loadData() {
 function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateProgress(); }
 function rand(max) { return Math.floor(Math.random() * max); }
 function pick(array) { return array[rand(array.length)]; }
-function shuffle(array) { return [...array].sort(() => Math.random() - .5); }
+function shuffle(array) {
+  const result = [...array];
+  for (let index = result.length - 1; index > 0; index--) {
+    const swapWith = rand(index + 1);
+    [result[index], result[swapWith]] = [result[swapWith], result[index]];
+  }
+  return result;
+}
 function unique(array) { return [...new Set(array)]; }
 function el(selector, root = document) { return root.querySelector(selector); }
 function esc(value) { return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -81,7 +89,10 @@ function staffSvg(clef, step) {
   if (step <= -2) for (let i = -2; i >= step; i -= 2) ledgers += `<line class="ledger" x1="${xNote - 22}" y1="${bottom - i * gap / 2}" x2="${xNote + 22}" y2="${bottom - i * gap / 2}"/>`;
   if (step >= 10) for (let i = 10; i <= step; i += 2) ledgers += `<line class="ledger" x1="${xNote - 22}" y1="${bottom - i * gap / 2}" x2="${xNote + 22}" y2="${bottom - i * gap / 2}"/>`;
   const clefGlyph = clef === 'sol' ? '𝄞' : '𝄢';
-  return `<svg class="staff-svg" viewBox="0 0 440 135" role="img" aria-label="Pentagrama na clave de ${clef === 'sol' ? 'sol' : 'fá'}, com uma nota para identificar"><g>${lines}${ledgers}</g><text x="15" y="83" font-size="61" font-family="Segoe UI Symbol,serif">${clefGlyph}</text><text x="84" y="18" font-size="9" letter-spacing="1.4">CLAVE DE ${clef.toUpperCase()}</text><ellipse class="note-head" cx="${xNote}" cy="${y}" rx="10" ry="6.5" transform="rotate(-18 ${xNote} ${y})"/><line class="stem" x1="${xNote + 9}" y1="${y - 1}" x2="${xNote + 9}" y2="${y - 48}"/></svg>`;
+  const stemUp = step < 4;
+  const stemX = xNote + (stemUp ? 9 : -9);
+  const stemEnd = y + (stemUp ? -44 : 44);
+  return `<svg class="staff-svg" viewBox="0 0 440 135" role="img" aria-label="Pentagrama na clave de ${clef === 'sol' ? 'sol' : 'fá'}, com uma nota para identificar"><g>${lines}${ledgers}</g><text x="15" y="83" font-size="61" font-family="Segoe UI Symbol,serif">${clefGlyph}</text><text x="84" y="18" font-size="9" letter-spacing="1.4">CLAVE DE ${clef.toUpperCase()}</text><ellipse class="note-head" cx="${xNote}" cy="${y}" rx="10" ry="6.5" transform="rotate(-18 ${xNote} ${y})"/><line class="stem" x1="${stemX}" y1="${y}" x2="${stemX}" y2="${stemEnd}"/></svg>`;
 }
 
 function figureSvg(figure) {
@@ -96,6 +107,22 @@ function figureSvg(figure) {
     }
   }
   return `<svg viewBox="0 0 160 100" width="160" height="100" aria-label="Figura de ${esc(figure.name)}">${head}${stem}</svg>`;
+}
+
+function restSvg(figure) {
+  let shape = '';
+  if (figure.value === 4) {
+    shape = '<line class="rest-staff-line" x1="32" y1="55" x2="128" y2="55"/><rect x="68" y="55" width="25" height="10" rx="1"/>';
+  } else if (figure.value === 2) {
+    shape = '<line class="rest-staff-line" x1="32" y1="55" x2="128" y2="55"/><rect x="68" y="45" width="25" height="10" rx="1"/>';
+  } else if (figure.value === 1) {
+    shape = '<path d="M86 13 67 34l16 10-15 17 13 8-10 13" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>';
+  } else {
+    const dots = Math.max(1, Math.round(Math.log2(1 / figure.value)));
+    shape = '<path d="M84 17c-14 7-18 18-7 25 10 7 14 12 5 21L66 81" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M82 20c20 2 23 15 8 25" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>'
+      + Array.from({ length: dots }, (_, index) => `<circle cx="${96 + (index % 2) * 8}" cy="${31 + Math.floor(index / 2) * 10}" r="3.3"/>`).join('');
+  }
+  return `<svg class="rest-symbol" viewBox="0 0 160 100" role="img" aria-label="Pausa de ${esc(figure.name)}">${shape}</svg>`;
 }
 
 function noteQuestion(clef) {
@@ -124,7 +151,7 @@ function teachingStaff(clef, kind) {
 }
 
 function rhythmLessonVisual() {
-  return `<div class="rhythm-visual-grid">${figures.map(figure => `<div class="rhythm-tile">${figureSvg(figure)}<b>${figure.name}</b><span>${figure.value} ${figure.value === 1 ? 'tempo' : 'tempos'}</span></div>`).join('')}</div><div class="visual-note"><b>As pausas</b><span>Cada figura tem uma pausa de mesma duração. A pausa representa silêncio.</span></div>`;
+  return `<div class="rhythm-visual-grid">${figures.map(figure => `<div class="rhythm-tile"><b>${figure.name}</b><span>${beatLabel(figure.value)}</span><div class="rhythm-symbol-pair"><div>${figureSvg(figure)}<small>Som</small></div><div>${restSvg(figure)}<small>Silêncio</small></div></div></div>`).join('')}</div><div class="visual-note"><b>Som e silêncio</b><span>A pausa tem o mesmo valor de duração da figura correspondente, mas representa silêncio.</span></div>`;
 }
 
 function meterLessonVisual() {
@@ -141,9 +168,11 @@ function headsLessonVisual() {
 
 function rhythmQuestion() {
   const figure = pick(figures);
-  const distractors = figures.filter(f => f.value !== figure.value).map(f => `${f.value} ${f.value === 1 ? 'tempo' : 'tempos'}`);
-  const answer = `${figure.value} ${figure.value === 1 ? 'tempo' : 'tempos'}`;
-  return { mode: 'ritmos', title: `Qual é o valor da ${figure.name.toLowerCase()}?`, sub: 'Considere a semínima como 1 tempo, em um compasso simples.', visual: `<div class="notation-box">${figureSvg(figure)}<div class="symbol-caption">${figure.name}</div></div>`, choices: shuffle(unique([answer, ...shuffle(distractors).slice(0, 3)])), answer, explain: `${figure.name} vale ${answer}. Cada figura seguinte vale metade da anterior: semibreve, mínima, semínima, colcheia, semicolcheia e fusa.` };
+  const asksRest = Math.random() < .5;
+  const distractors = figures.filter(f => f.value !== figure.value).map(f => beatLabel(f.value));
+  const answer = beatLabel(figure.value);
+  const visual = asksRest ? restSvg(figure) : figureSvg(figure);
+  return { mode: 'ritmos', title: `Qual é o valor ${asksRest ? `da pausa de ${figure.name.toLowerCase()}` : `da ${figure.name.toLowerCase()}`}?`, sub: 'Considere a semínima como 1 tempo, em um compasso simples.', visual: `<div class="notation-box">${visual}<div class="symbol-caption">${asksRest ? `Pausa de ${figure.name.toLowerCase()}` : figure.name}</div></div>`, choices: shuffle(unique([answer, ...shuffle(distractors).slice(0, 3)])), answer, explain: `A ${asksRest ? `pausa de ${figure.name.toLowerCase()}` : figure.name} dura ${answer}. Pausas representam silêncio; cada figura seguinte vale metade da anterior.` };
 }
 
 function meterQuestion() {
@@ -254,6 +283,7 @@ function renderLessons() {
 
 function startMode(mode) {
   currentMode = labels[mode] ? mode : 'misturado';
+  questionNumber = 0;
   document.querySelectorAll('.mode-button').forEach(button => button.classList.toggle('selected', button.dataset.mode === currentMode));
   go('treinar'); renderQuestion();
 }

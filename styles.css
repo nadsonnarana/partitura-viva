@@ -11,3 +11,31 @@
 @media(max-width:800px){.score-layout{grid-template-columns:1fr}.score-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}.score-picker .side-title{grid-column:1/-1}.score-song{margin:1px 0;padding:9px 8px}.score-workspace{padding:15px}.score-actions{width:100%}.score-actions .button{flex:1}}
 
 .score-ledger{stroke:#847aa9;stroke-width:1.4}
+
+/* Refined notation, pause examples and keyboard feedback. */
+:root{--muted:#666b7b;--line:#e4e2dd}
+:where(h1,h2,h3,b,strong,button){font-family:system-ui,"Segoe UI",sans-serif}
+button:disabled{cursor:not-allowed}
+.game-launch:focus-visible,.score-song:focus-visible,.clef-switch button:focus-visible,.answer-option:focus-visible{outline:3px solid #8f85cf;outline-offset:3px}
+.score-picker{position:sticky;top:16px}
+.score-song{border:1px solid transparent;transition:background .16s,border-color .16s,color .16s}
+.score-song.selected{border-color:#d8d3ec}
+.score-workspace{min-width:0;box-shadow:0 12px 34px rgba(52,48,82,.055)}
+.score-heading h2{line-height:1.25;letter-spacing:-.45px}
+.score-heading .eyebrow{margin-bottom:6px}
+.score-tools{align-items:center}
+.score-actions{min-width:0}
+.score-status{flex-basis:100%;font-size:10px;color:#7b4d3e}
+.score-hint{padding:9px 12px;margin:12px 0 0;border-radius:9px;background:#f2f0fa;color:#615b78}
+.score-notehead,.score-stem,.score-flag,.score-ledger{vector-effect:non-scaling-stroke}
+.rhythm-symbol-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;width:100%;margin-top:6px}
+.rhythm-symbol-pair>div{min-width:0;display:flex;flex-direction:column;align-items:center;border-radius:8px;background:#fff;padding:3px}
+.rhythm-symbol-pair svg{display:block;width:min(100%,82px);height:58px}
+.rhythm-symbol-pair small{font-size:8px;line-height:1.3;color:#68657a}
+.rest-symbol{fill:#413c5d;color:#413c5d}
+.rest-staff-line{stroke:#aaa5bb;stroke-width:1.4}
+.rhythm-tile{padding:10px 7px}
+.rhythm-tile>span{font-variant-numeric:tabular-nums}
+.button:focus-visible,.text-button:focus-visible,.nav-link:focus-visible,.icon-button:focus-visible{outline:3px solid #8f85cf;outline-offset:3px}
+@media(max-width:800px){.score-picker{position:static}.score-tools{align-items:flex-start}.score-actions{gap:7px}}
+@media(max-width:480px){.score-picker{grid-template-columns:1fr}.score-song{padding:10px}.score-actions .button{flex:1 1 40%}.note-name-toggle{width:100%;padding:4px 2px}.score-status{padding:2px}.rhythm-symbol-pair{gap:2px}.rhythm-symbol-pair small{font-size:7px}.rhythm-tile{padding:8px 4px}}

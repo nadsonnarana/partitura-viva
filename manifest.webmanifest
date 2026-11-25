@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Música em Jogo — aprender música",
+  "short_name": "Música em Jogo",
+  "description": "Aprenda música com jogos, ritmos, leitura de notas e partituras interativas.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f6f1",
+  "theme_color": "#f7f6f1",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
