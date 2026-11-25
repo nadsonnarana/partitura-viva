@@ -1,4 +1,4 @@
-const CACHE_NAME = 'musica-em-jogo-v16';
+const CACHE_NAME = 'musica-em-jogo-v17';
 const APP_FILES = [
   './',
   './index.html',

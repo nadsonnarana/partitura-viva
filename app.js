@@ -2,6 +2,7 @@ const STORAGE_KEY = 'partitura-viva-v1';
 const labels = { misturado: 'Misturado', claveSol: 'Clave de sol', claveFa: 'Clave de fá', ritmos: 'Figuras rítmicas', compassos: 'Compassos', expressao: 'Expressão', cabecas: 'Cabeças de nota', ouvido: 'Ouvido musical', completar: 'Complete o compasso' };
 const topics = ['claveSol', 'claveFa', 'ritmos', 'compassos', 'expressao', 'cabecas', 'ouvido', 'completar'];
 const noteLetters = ['Dó', 'Ré', 'Mi', 'Fá', 'Sol', 'Lá', 'Si'];
+const noteMidiByName = { 'Dó':60, 'Ré':62, 'Mi':64, 'Fá':65, 'Sol':67, 'Lá':69, 'Si':71 };
 const letterBase = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
 const clefBase = { sol: { letter: 'E', octave: 4 }, fa: { letter: 'G', octave: 2 } };
 const figures = [
@@ -90,10 +91,11 @@ function staffSvg(clef, step) {
   if (step <= -2) for (let i = -2; i >= step; i -= 2) ledgers += `<line class="ledger" x1="${xNote - 22}" y1="${bottom - i * gap / 2}" x2="${xNote + 22}" y2="${bottom - i * gap / 2}"/>`;
   if (step >= 10) for (let i = 10; i <= step; i += 2) ledgers += `<line class="ledger" x1="${xNote - 22}" y1="${bottom - i * gap / 2}" x2="${xNote + 22}" y2="${bottom - i * gap / 2}"/>`;
   const clefGlyph = clef === 'sol' ? '𝄞' : '𝄢';
+  const clefY = clef === 'sol' ? 106 : 95;
   const stemUp = step < 4;
   const stemX = xNote + (stemUp ? 9 : -9);
   const stemEnd = y + (stemUp ? -44 : 44);
-  return `<svg class="staff-svg" viewBox="0 0 440 135" role="img" aria-label="Pentagrama na clave de ${clef === 'sol' ? 'sol' : 'fá'}, com uma nota para identificar"><g>${lines}${ledgers}</g><text x="15" y="83" font-size="61" font-family="Segoe UI Symbol,serif">${clefGlyph}</text><text x="84" y="18" font-size="9" letter-spacing="1.4">CLAVE DE ${clef.toUpperCase()}</text><ellipse class="note-head" cx="${xNote}" cy="${y}" rx="10" ry="6.5" transform="rotate(-18 ${xNote} ${y})"/><line class="stem" x1="${stemX}" y1="${y}" x2="${stemX}" y2="${stemEnd}"/></svg>`;
+  return `<svg class="staff-svg" viewBox="0 0 440 135" role="img" aria-label="Pentagrama na clave de ${clef === 'sol' ? 'sol' : 'fá'}, com uma nota para identificar"><g>${lines}${ledgers}</g><text x="15" y="${clefY}" font-size="61" font-family="Segoe UI Symbol,serif">${clefGlyph}</text><text x="84" y="18" font-size="9" letter-spacing="1.4">CLAVE DE ${clef.toUpperCase()}</text><ellipse class="note-head" cx="${xNote}" cy="${y}" rx="10" ry="6.5" transform="rotate(-18 ${xNote} ${y})"/><line class="stem" x1="${stemX}" y1="${y}" x2="${stemX}" y2="${stemEnd}"/></svg>`;
 }
 
 function figureSvg(figure) {
@@ -205,7 +207,7 @@ function audioPitchQuestion() {
     { note: 'B', name: 'Si', midi: 71 }
   ]);
   const choices = shuffle(unique([pitch.name, ...shuffle(['Dó', 'Ré', 'Mi', 'Fá', 'Sol', 'Lá', 'Si'].filter(name => name !== pitch.name)).slice(0, 3)]));
-  return { mode: 'ouvido', title: 'Que nota você ouviu?', sub: 'Ouça com atenção. Você pode tocar o som novamente antes de responder.', visual: `<div class="ear-game"><span aria-hidden="true">♫</span><button type="button" class="button primary" data-play-midi="${pitch.midi}">▶ Ouvir a nota</button><small>Ouça e escolha o nome da nota.</small></div>`, choices, answer: pitch.name, explain: `A nota tocada foi ${pitch.name} (${pitch.note}4).` };
+  return { mode: 'ouvido', title: 'Que nota você ouviu?', sub: 'Ouça a pergunta e clique nas opções para comparar o som de cada nota antes de confirmar.', visual: `<div class="ear-game"><span aria-hidden="true">♫</span><button type="button" class="button primary" data-play-midi="${pitch.midi}">▶ Ouvir a nota da pergunta</button><small>Clique em uma opção para ouvir essa nota; você pode comparar várias antes de conferir.</small></div>`, choices, answer: pitch.name, explain: `A nota tocada foi ${pitch.name} (${pitch.note}4).` };
 }
 
 const completionOptions = [
@@ -280,6 +282,7 @@ function renderQuestion() {
 function selectAnswer(button) {
   if (answered) return;
   selectedAnswer = button.dataset.answer;
+  if (currentQuestion?.mode === 'ouvido' && noteMidiByName[selectedAnswer]) playQuestionNote(noteMidiByName[selectedAnswer]);
   document.querySelectorAll('.answer-option').forEach(b => b.classList.toggle('selected', b === button));
   el('#nextQuestion').disabled = false;
 }
