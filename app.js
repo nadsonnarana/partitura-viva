@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'partitura-viva-v1';
-const labels = { misturado: 'Misturado', claveSol: 'Clave de sol', claveFa: 'Clave de fá', ritmos: 'Figuras rítmicas', compassos: 'Compassos', expressao: 'Expressão', cabecas: 'Cabeças de nota' };
-const topics = ['claveSol', 'claveFa', 'ritmos', 'compassos', 'expressao', 'cabecas'];
+const labels = { misturado: 'Misturado', claveSol: 'Clave de sol', claveFa: 'Clave de fá', ritmos: 'Figuras rítmicas', compassos: 'Compassos', expressao: 'Expressão', cabecas: 'Cabeças de nota', ouvido: 'Ouvido musical', completar: 'Complete o compasso' };
+const topics = ['claveSol', 'claveFa', 'ritmos', 'compassos', 'expressao', 'cabecas', 'ouvido', 'completar'];
 const noteLetters = ['Dó', 'Ré', 'Mi', 'Fá', 'Sol', 'Lá', 'Si'];
 const letterBase = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
 const clefBase = { sol: { letter: 'E', octave: 4 }, fa: { letter: 'G', octave: 2 } };
@@ -14,11 +14,11 @@ const figures = [
 ];
 const beatLabel = value => ({ 4: '4 tempos', 2: '2 tempos', 1: '1 tempo', 0.5: '½ tempo', 0.25: '¼ tempo', 0.125: '⅛ tempo' })[value] || `${value} tempos`;
 const meters = [
-  { symbol: '2/4', top: 2, bottom: 4, pulse: 'semínima', grouping: '2 tempos de semínima' },
-  { symbol: '3/4', top: 3, bottom: 4, pulse: 'semínima', grouping: '3 tempos de semínima' },
-  { symbol: '4/4', top: 4, bottom: 4, pulse: 'semínima', grouping: '4 tempos de semínima' },
-  { symbol: '2/2', top: 2, bottom: 2, pulse: 'mínima', grouping: '2 tempos de mínima' },
-  { symbol: '6/8', top: 6, bottom: 8, pulse: 'colcheia', grouping: '6 colcheias, geralmente agrupadas em 2 grupos de 3' }
+  { symbol: '2/4', top: 2, bottom: 4, pulse: 'semínima', grouping: '2 tempos de semínima', simple: true },
+  { symbol: '3/4', top: 3, bottom: 4, pulse: 'semínima', grouping: '3 tempos de semínima', simple: true },
+  { symbol: '4/4', top: 4, bottom: 4, pulse: 'semínima', grouping: '4 tempos de semínima', simple: true },
+  { symbol: '2/2', top: 2, bottom: 2, pulse: 'mínima', grouping: '2 tempos de mínima', simple: true },
+  { symbol: '6/8', top: 6, bottom: 8, pulse: 'semínima pontuada', grouping: '2 pulsos de semínima pontuada, cada um dividido em 3 colcheias', simple: false }
 ];
 const expressions = [
   { symbol: 'p', name: 'Piano', meaning: 'Toque suave, com pouca intensidade.' },
@@ -43,6 +43,7 @@ let selectedAnswer = null;
 let answered = false;
 let questionNumber = 0;
 let soundOn = false;
+let activeNoteAudio = null;
 
 function freshData() { return { points: 0, correct: 0, streak: 0, best: 0, byMode: {} }; }
 function loadData() {
@@ -106,23 +107,25 @@ function figureSvg(figure) {
       stem += `<path d="M90 ${yy} Q122 ${yy + 2} 102 ${yy + 19 - i * 2}" fill="none" stroke="#413c5d" stroke-width="3" stroke-linecap="round"/>`;
     }
   }
-  return `<svg viewBox="0 0 160 100" width="160" height="100" aria-label="Figura de ${esc(figure.name)}">${head}${stem}</svg>`;
+  const dot = figure.dotted ? '<circle cx="111" cy="65" r="4" fill="#413c5d"/>' : '';
+  return `<svg viewBox="0 0 160 100" width="160" height="100" aria-label="Figura de ${esc(figure.name)}">${head}${stem}${dot}</svg>`;
 }
 
 function restSvg(figure) {
-  let shape = '';
+  const restGlyphs = { 1: '\u{1D13D}', 0.5: '\u{1D13E}', 0.25: '\u{1D13F}', 0.125: '\u{1D140}' };
+  let symbol;
   if (figure.value === 4) {
-    shape = '<line class="rest-staff-line" x1="32" y1="55" x2="128" y2="55"/><rect x="68" y="55" width="25" height="10" rx="1"/>';
+    // Whole-measure rest: hangs from the fourth staff line.
+    symbol = '<rect x="68" y="35" width="24" height="9" rx="1"/>';
   } else if (figure.value === 2) {
-    shape = '<line class="rest-staff-line" x1="32" y1="55" x2="128" y2="55"/><rect x="68" y="45" width="25" height="10" rx="1"/>';
-  } else if (figure.value === 1) {
-    shape = '<path d="M86 13 67 34l16 10-15 17 13 8-10 13" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>';
+    // Half rest: sits on top of the third staff line.
+    symbol = '<rect x="68" y="41" width="24" height="9" rx="1"/>';
   } else {
-    const dots = Math.max(1, Math.round(Math.log2(1 / figure.value)));
-    shape = '<path d="M84 17c-14 7-18 18-7 25 10 7 14 12 5 21L66 81" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M82 20c20 2 23 15 8 25" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>'
-      + Array.from({ length: dots }, (_, index) => `<circle cx="${96 + (index % 2) * 8}" cy="${31 + Math.floor(index / 2) * 10}" r="3.3"/>`).join('');
+    const glyph = restGlyphs[figure.value];
+    symbol = `<text class="rest-glyph" x="80" y="82" text-anchor="middle">${glyph}</text>`;
   }
-  return `<svg class="rest-symbol" viewBox="0 0 160 100" role="img" aria-label="Pausa de ${esc(figure.name)}">${shape}</svg>`;
+  const staff = [20, 35, 50, 65, 80].map(y => `<line x1="30" y1="${y}" x2="130" y2="${y}"/>`).join('');
+  return `<svg class="rest-symbol" viewBox="0 0 160 100" role="img" aria-label="Pausa de ${esc(figure.name)}"><g class="rest-staff">${staff}</g>${symbol}</svg>`;
 }
 
 function noteQuestion(clef) {
@@ -155,7 +158,13 @@ function rhythmLessonVisual() {
 }
 
 function meterLessonVisual() {
-  return `<div class="meter-visual-grid"><div class="meter-visual-card"><div class="meter-large">3<small>4</small></div><div class="meter-labels"><b>3 tempos</b><span>cada tempo vale uma semínima</span></div><div class="beat-row"><i>♩</i><i>♩</i><i>♩</i></div></div><div class="meter-visual-card"><div class="meter-large">6<small>8</small></div><div class="meter-labels"><b>6 colcheias</b><span>agrupadas em 2 pulsos de 3</span></div><div class="eighth-groups"><span>● ● ●</span><em></em><span>● ● ●</span></div></div></div><div class="visual-note"><b>Como lembrar</b><span>Número de cima: quantas unidades. Número de baixo: qual figura representa uma unidade.</span></div>`;
+  const examples = [
+    { symbol: '2/4', title: '2 tempos', text: '2 semínimas, uma para cada tempo.', beats: 2, figure: '♩' },
+    { symbol: '3/4', title: '3 tempos', text: '3 semínimas, uma para cada tempo.', beats: 3, figure: '♩' },
+    { symbol: '4/4', title: '4 tempos', text: '4 semínimas, uma para cada tempo.', beats: 4, figure: '♩' },
+    { symbol: '6/8', title: '2 pulsos compostos', text: '2 semínimas pontuadas, uma para cada pulso composto.', beats: 2, figure: '♩.' }
+  ];
+  return `<div class="meter-visual-grid">${examples.map(meter => `<div class="meter-visual-card"><div class="meter-large"><span>${meter.symbol.split('/')[0]}</span><small>${meter.symbol.split('/')[1]}</small></div><div class="meter-labels"><b>${meter.title}</b><span>${meter.text}</span></div><div class="meter-subdivision-row">${Array.from({ length: meter.beats }, () => `<div class="meter-beat-group"><i>${meter.figure}</i></div>`).join('')}</div></div>`).join('')}</div><div class="visual-note"><b>Figuras do pulso</b><span>Nos compassos simples, cada caixa mostra uma semínima. No 6/8, cada caixa mostra uma semínima pontuada, que representa um pulso composto.</span></div>`;
 }
 
 function expressionLessonVisual() {
@@ -179,7 +188,55 @@ function meterQuestion() {
   const meter = pick(meters);
   const answer = meter.grouping;
   const other = shuffle(meters.filter(m => m.symbol !== meter.symbol).map(m => m.grouping)).slice(0, 3);
-  return { mode: 'compassos', title: `Como contar o compasso ${meter.symbol}?`, sub: 'O número de cima conta as unidades; o de baixo indica a figura de referência.', visual: `<div class="meter-card"><div class="meter-mark">${meter.top}<small>${meter.bottom}</small></div><div class="meter-explain">${meter.bottom === 4 ? 'A unidade é a semínima.' : meter.bottom === 2 ? 'A unidade é a mínima.' : 'A unidade indicada é a colcheia.'}</div></div>`, choices: shuffle([answer, ...other]), answer, explain: meter.symbol === '6/8' ? 'Em 6/8 há seis unidades de colcheia; elas costumam se agrupar como 3 + 3, formando dois pulsos compostos.' : `Em ${meter.symbol}, ${answer}. O número de baixo 4 representa semínimas; o número 2 representa mínimas.` };
+  const explanation = meter.simple
+    ? `Em ${meter.symbol}, ${answer}. O número de baixo indica a figura que recebe um tempo.`
+    : 'Em 6/8 há seis colcheias agrupadas em dois grupos de 3 + 3. Cada grupo forma um pulso de semínima pontuada.';
+  const visualText = meter.symbol === '6/8'
+    ? '2 pulsos de semínima pontuada; cada pulso se divide em 3 colcheias.'
+    : `${meter.top} tempos de ${meter.pulse}.`;
+  return { mode: 'compassos', title: `Como contar o compasso ${meter.symbol}?`, sub: 'Observe quantos pulsos há e em quantas partes cada pulso se divide.', visual: `<div class="meter-card"><div class="meter-mark">${meter.top}<small>${meter.bottom}</small></div><div class="meter-explain">${visualText}</div></div>`, choices: shuffle([answer, ...other]), answer, explain: explanation };
+}
+
+function audioPitchQuestion() {
+  const pitch = pick([
+    { note: 'C', name: 'Dó', midi: 60 }, { note: 'D', name: 'Ré', midi: 62 },
+    { note: 'E', name: 'Mi', midi: 64 }, { note: 'F', name: 'Fá', midi: 65 },
+    { note: 'G', name: 'Sol', midi: 67 }, { note: 'A', name: 'Lá', midi: 69 },
+    { note: 'B', name: 'Si', midi: 71 }
+  ]);
+  const choices = shuffle(unique([pitch.name, ...shuffle(['Dó', 'Ré', 'Mi', 'Fá', 'Sol', 'Lá', 'Si'].filter(name => name !== pitch.name)).slice(0, 3)]));
+  return { mode: 'ouvido', title: 'Que nota você ouviu?', sub: 'Ouça com atenção. Você pode tocar o som novamente antes de responder.', visual: `<div class="ear-game"><span aria-hidden="true">♫</span><button type="button" class="button primary" data-play-midi="${pitch.midi}">▶ Ouvir a nota</button><small>Ouça e escolha o nome da nota.</small></div>`, choices, answer: pitch.name, explain: `A nota tocada foi ${pitch.name} (${pitch.note}4).` };
+}
+
+const completionOptions = [
+  { units: 1, label: '1 colcheia' }, { units: 2, label: '1 semínima' },
+  { units: 3, label: '1 semínima pontuada' }, { units: 4, label: '1 mínima' }
+];
+function completeMeasureQuestion() {
+  const meter = pick(meters.filter(item => ['2/4', '3/4', '4/4', '6/8'].includes(item.symbol)));
+  const groupSize = meter.bottom === 8 ? 3 : 2;
+  const units = meter.top * (8 / meter.bottom);
+  const answer = pick(completionOptions.filter(item => item.units < units));
+  const filledUnits = units - answer.units;
+  const cells = Array.from({ length: filledUnits }, (_, index) => `<span class="measure-unit filled ${index > 0 && index % groupSize === 0 ? 'group-start' : ''}" aria-label="colcheia preenchida">♪</span>`).join('');
+  const blank = `<span class="measure-missing" style="grid-column:span ${answer.units}" aria-label="espaço que falta">?</span>`;
+  const choices = shuffle(completionOptions.map(item => item.label));
+  const beatText = meter.bottom === 8 ? '2 pulsos compostos, cada um dividido em 3 colcheias' : `${meter.top} tempos de semínima`;
+  return { mode: 'completar', title: `Complete o compasso ${meter.symbol}`, sub: `O compasso tem ${beatText}. Cada quadrinho representa uma colcheia.`, visual: `<div class="measure-game"><div class="measure-time">${meter.top}<small>${meter.bottom}</small></div><div class="measure-bar" style="--unit-count:${units}">${cells}${blank}</div><div class="measure-key"><span>♪ Parte já preenchida</span><span>? Figura que falta</span></div></div>`, choices, answer: answer.label, explain: `O compasso ${meter.symbol} tem ${units} colcheias de duração. As notas já ocupam ${filledUnits}; faltam ${answer.units}, equivalentes a ${answer.label.toLowerCase()}.` };
+}
+
+async function playQuestionNote(midi) {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  try {
+    if (activeNoteAudio) { await activeNoteAudio.close().catch(() => {}); activeNoteAudio = null; }
+    const context = new AudioContextClass(); activeNoteAudio = context; await context.resume();
+    const oscillator = context.createOscillator(), gain = context.createGain(), now = context.currentTime;
+    oscillator.type = 'sine'; oscillator.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+    gain.gain.setValueAtTime(0.0001, now); gain.gain.exponentialRampToValueAtTime(0.16, now + 0.035); gain.gain.setValueAtTime(0.16, now + 0.48); gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.68);
+    oscillator.connect(gain); gain.connect(context.destination); oscillator.onended = () => { if (activeNoteAudio === context) { activeNoteAudio = null; context.close().catch(() => {}); } };
+    oscillator.start(now); oscillator.stop(now + 0.7);
+  } catch { activeNoteAudio = null; }
 }
 
 function expressionQuestion() {
@@ -205,7 +262,7 @@ function createQuestion() {
   const mode = currentMode === 'misturado' ? pick(topics) : currentMode;
   if (mode === 'claveSol') return noteQuestion('sol');
   if (mode === 'claveFa') return noteQuestion('fa');
-  return ({ ritmos: rhythmQuestion, compassos: meterQuestion, expressao: expressionQuestion, cabecas: headQuestion })[mode]();
+  return ({ ritmos: rhythmQuestion, compassos: meterQuestion, expressao: expressionQuestion, cabecas: headQuestion, ouvido: audioPitchQuestion, completar: completeMeasureQuestion })[mode]();
 }
 
 function renderQuestion() {
@@ -257,6 +314,19 @@ function updateProgress() {
     const percent = stats.attempts ? Math.round(stats.correct / stats.attempts * 100) : 0;
     return `<div class="topic-row"><span>${labels[mode]}</span><div class="topic-bar"><i style="width:${percent}%"></i></div><b>${stats.correct}/${stats.attempts}</b></div>`;
   }).join('');
+  const courseList = el('#courseProgressList');
+  if (courseList) {
+    let instruments = {}, harmony = {};
+    try { instruments = JSON.parse(localStorage.getItem('musica-em-jogo-instrument-progress') || '{}'); } catch { instruments = {}; }
+    try { harmony = JSON.parse(localStorage.getItem('musica-em-jogo-harmony-progress') || '{}'); } catch { harmony = {}; }
+    const scores = [
+      { name: 'Partitura', detail: 'Respostas corretas', value: data.correct, total: Object.values(data.byMode).reduce((sum, item) => sum + (item.attempts || 0), 0) },
+      { name: 'Harmonia musical', detail: 'Pontos no jogo', value: harmony.points || 0, total: harmony.questions || 0 },
+      { name: 'Teclado', detail: 'Pontos no jogo', value: instruments.teclado?.points || 0, total: instruments.teclado?.questions || 0 },
+      { name: 'Violão', detail: 'Pontos no jogo', value: instruments.violao?.points || 0, total: instruments.violao?.questions || 0 }
+    ];
+    courseList.innerHTML = scores.map(item => `<article class="course-progress-card"><span>${item.name}</span><b>${item.value}</b><small>${item.detail} · ${item.total} questões</small></article>`).join('');
+  }
 }
 
 const lessons = [
@@ -270,21 +340,12 @@ const lessons = [
 
 function renderLessons() {
   const cards = lessons.map(lesson => `<article class="lesson-card ${lesson.visuals ? 'clef-lesson' : ''}"><p class="eyebrow">${lesson.tag}</p><div class="lesson-symbols">${lesson.icon}</div><h2>${lesson.title}</h2><p>${lesson.text}</p>${lesson.visual ? `<div class="lesson-visual">${lesson.visual}</div>` : ''}${lesson.visuals ? `<div class="clef-maps">${lesson.visuals.join('')}</div>` : ''}${lesson.example ? `<div class="example">${lesson.example}</div>` : ''}</article>`).join('');
-  const games = [
-    ['claveSol', 'Clave de sol', 'Identifique as notas da clave de sol.'],
-    ['claveFa', 'Clave de fá', 'Identifique as notas da clave de fá.'],
-    ['ritmos', 'Figuras rítmicas', 'Pratique os valores das figuras.'],
-    ['compassos', 'Compassos', 'Leia pulsos e agrupamentos.'],
-    ['expressao', 'Expressão musical', 'Reconheça dinâmicas e articulações.'],
-    ['cabecas', 'Cabeças de nota', 'Relacione posição e formato.']
-  ];
-  el('#lessonGrid').innerHTML = `<section class="learning-block"><div class="learning-heading"><span class="step-number">1</span><div><p class="eyebrow">LEIA ANTES DE JOGAR</p><h2>Entenda cada parte da partitura</h2><p>Comece pelas claves e percorra todas as explicações. Os jogos ficam logo abaixo.</p></div></div><div class="lesson-grid">${cards}</div></section><section class="games-block"><div class="learning-heading"><span class="step-number game-step">2</span><div><p class="eyebrow">AGORA, PRATIQUE</p><h2>Escolha um jogo</h2><p>Depois de ler as explicações, escolha um assunto ou misture todos.</p></div></div><div class="game-launch-grid">${games.map(([mode, title, text]) => `<button class="game-launch" data-mode="${mode}"><span>${mode === 'claveSol' ? '𝄞' : mode === 'claveFa' ? '𝄢' : mode === 'ritmos' ? '♩' : mode === 'compassos' ? '4/4' : mode === 'expressao' ? 'ƒ' : '●'}</span><b>${title}</b><small>${text}</small><i>Começar →</i></button>`).join('')}</div><button class="button primary mixed-game" data-mode="misturado">Jogar um pouco de tudo <span>→</span></button></section>`;
+  el('#lessonGrid').innerHTML = `<section class="learning-block"><div class="learning-heading"><span class="step-number">1</span><div><p class="eyebrow">LEIA ANTES DE JOGAR</p><h2>Entenda cada parte da música</h2><p>Explore as explicações e depois pratique em rodadas que misturam os assuntos.</p></div></div><div class="lesson-grid">${cards}</div></section><section class="games-block"><div class="learning-heading"><span class="step-number game-step">2</span><div><p class="eyebrow">AGORA, PRATIQUE</p><h2>Jogo misturado</h2><p>As perguntas alternam entre notas, ritmo, compassos e ouvido musical automaticamente.</p></div></div><button class="button primary mixed-game" data-mode="misturado">Começar a praticar <span>→</span></button></section>`;
 }
 
-function startMode(mode) {
-  currentMode = labels[mode] ? mode : 'misturado';
+function startMode() {
+  currentMode = 'misturado';
   questionNumber = 0;
-  document.querySelectorAll('.mode-button').forEach(button => button.classList.toggle('selected', button.dataset.mode === currentMode));
   go('treinar'); renderQuestion();
 }
 
@@ -298,7 +359,9 @@ document.addEventListener('click', event => {
   const goButton = event.target.closest('[data-go]');
   if (goButton) { go(goButton.dataset.go); if (goButton.dataset.go === 'treinar') renderQuestion(); return; }
   const modeButton = event.target.closest('[data-mode]');
-  if (modeButton) { startMode(modeButton.dataset.mode); return; }
+  if (modeButton) { startMode(); return; }
+  const playMidiButton = event.target.closest('[data-play-midi]');
+  if (playMidiButton) { playQuestionNote(Number(playMidiButton.dataset.playMidi)); return; }
   const answerButton = event.target.closest('.answer-option');
   if (answerButton) { selectAnswer(answerButton); return; }
   const nav = event.target.closest('[data-view]');
@@ -308,8 +371,9 @@ document.addEventListener('click', event => {
 el('#nextQuestion').addEventListener('click', () => answered ? renderQuestion() : checkAnswer());
 el('#skipQuestion').addEventListener('click', renderQuestion);
 el('#soundToggle').addEventListener('click', event => { soundOn = !soundOn; event.currentTarget.textContent = soundOn ? '♫' : '♪'; event.currentTarget.title = soundOn ? 'Som ligado' : 'Som desligado'; event.currentTarget.setAttribute('aria-pressed', String(soundOn)); });
-el('#resetProgress').addEventListener('click', () => { if (!confirm('Quer mesmo apagar todos os pontos e o histórico deste navegador?')) return; data = freshData(); saveData(); });
+el('#resetProgress').addEventListener('click', () => { if (!confirm('Quer mesmo apagar todos os pontos e o histórico deste navegador?')) return; data = freshData(); localStorage.removeItem('musica-em-jogo-instrument-progress'); localStorage.removeItem('musica-em-jogo-harmony-progress'); saveData(); window.location.reload(); });
 
+window.addEventListener('music-go-home', () => go('inicio'));
 renderLessons(); updateProgress(); renderQuestion();
 
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {

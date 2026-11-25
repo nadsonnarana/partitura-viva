@@ -1,10 +1,15 @@
-const CACHE_NAME = 'musica-em-jogo-v2';
+const CACHE_NAME = 'musica-em-jogo-v16';
 const APP_FILES = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './scores.js',
+  './harmony.js',
+  './harmony.css',
+  './instruments.js',
+  './instruments.css',
+  './theme.css',
   './manifest.webmanifest',
   './icon.svg'
 ];

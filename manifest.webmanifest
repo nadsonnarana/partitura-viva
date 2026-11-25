@@ -2,14 +2,14 @@
   "id": "./",
   "name": "Música em Jogo — aprender música",
   "short_name": "Música em Jogo",
-  "description": "Aprenda música com jogos, ritmos, leitura de notas e partituras interativas.",
+  "description": "Aprenda partitura, harmonia, teclado e violão com lições, digitações e jogos interativos.",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f7f6f1",
-  "theme_color": "#f7f6f1",
+  "background_color": "#f5f7fb",
+  "theme_color": "#e9f7f5",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
